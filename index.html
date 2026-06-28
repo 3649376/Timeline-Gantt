@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VienShop · План автоматизации 1С</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Manrope', sans-serif;
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface-2: #f9f8f5;
+  --border: rgba(0,0,0,0.08);
+  --text: #1a1916;
+  --text-muted: #6b6a67;
+  --text-faint: #aaa9a5;
+
+  /* Role colors */
+  --client-bg: #fff4e0;
+  --client-border: #e0952a;
+  --client-text: #7a4a00;
+  --client-dot: #e09020;
+
+  --us-bg: #e8f4f8;
+  --us-border: #2a8aaa;
+  --us-text: #0a4f66;
+  --us-dot: #2a8aaa;
+
+  --joint-bg: #ede8f8;
+  --joint-border: #7c52c8;
+  --joint-text: #3d1f7a;
+  --joint-dot: #7c52c8;
+
+  --risk-bg: #fde8e8;
+  --risk-border: #d93030;
+  --risk-text: #7a0f0f;
+  --risk-dot: #d93030;
+
+  --done-bg: #e6f7ec;
+  --done-border: #2e9e5a;
+  --done-text: #1a5c30;
+  --done-dot: #2e9e5a;
+
+  --tbd-bg: #f0f0ee;
+  --tbd-border: #bbbbbb;
+  --tbd-text: #666;
+
+  --warn-bg: #fff8e0;
+  --warn-border: #e0a000;
+  --warn-text: #7a5500;
+
+  --milestone-bg: #1a3c6e;
+  --milestone-text: #ffffff;
+
+  --connector: #d0cfc8;
+  --connector-blocker: #e09020;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.09);
+  --radius: 8px;
+}
+[data-theme="dark"] {
+  --bg: #181714;
+  --surface: #211f1c;
+  --surface-2: #1c1b18;
+  --border: rgba(255,255,255,0.08);
+  --text: #e0dfd9;
+  --text-muted: #8a8a84;
+  --text-faint: #555;
+  --client-bg: #2d2200;
+  --client-border: #c07820;
+  --client-text: #f0c070;
+  --us-bg: #0a2030;
+  --us-border: #3a9ab8;
+  --us-text: #80c8e0;
+  --joint-bg: #1a1030;
+  --joint-border: #8a60d8;
+  --joint-text: #c0a0f8;
+  --risk-bg: #300a0a;
+  --risk-border: #d04040;
+  --risk-text: #f08080;
+  --done-bg: #0a200e;
+  --done-border: #3aae5a;
+  --done-text: #70e090;
+  --tbd-bg: #1c1c1a;
+  --tbd-border: #444;
+  --tbd-text: #888;
+  --warn-bg: #1e1600;
+  --warn-border: #c09000;
+  --warn-text: #e0c060;
+  --connector: #3a3936;
+  --connector-blocker: #c07820;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100dvh;
+  padding-bottom: 60px;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, #1a3c6e 0%, #2a6aaa 100%);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 800; font-size: 14px; letter-spacing: -0.5px;
+}
+.logo-text { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text); }
+.logo-sub { font-size: 11px; color: var(--text-muted); margin-top: -1px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.badge-blocker {
+  background: var(--client-bg); border: 1.5px solid var(--client-border);
+  color: var(--client-text); font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 20px;
+  display: flex; align-items: center; gap: 5px;
+}
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--client-dot); animation: pulse 1.6s infinite; flex-shrink: 0; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+.theme-btn {
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 8px; cursor: pointer; color: var(--text-muted);
+  font-size: 15px; line-height: 1; transition: all 0.2s;
+}
+.theme-btn:hover { background: var(--surface-2); color: var(--text); }
+
+/* ── MAIN LAYOUT ── */
+.wrapper { max-width: 1240px; margin: 0 auto; padding: 28px 20px 0; }
+
+/* ── LEGEND ── */
+.legend {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── TIMELINE GRID ── */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+
+/* ── PHASE BLOCK ── */
+.phase {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  border-top: 1px solid var(--border);
+  min-height: 0;
+}
+.phase:last-child { border-bottom: 1px solid var(--border); }
+.phase-label {
+  padding: 20px 16px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; flex-direction: column; justify-content: flex-start; gap: 4px;
+  position: sticky; left: 0; z-index: 2;
+}
+.phase-num { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+.phase-title { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.phase-dur { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.phase-done .phase-title { color: var(--done-text); }
+.phase-done .phase-num { color: var(--done-dot); }
+
+.phase-body {
+  padding: 16px 20px;
+  background: var(--surface-2);
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* ── STREAM (swim-lane row) ── */
+.stream { display: flex; flex-direction: column; gap: 8px; }
+.stream-label { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); padding-bottom: 2px; }
+.task-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+
+/* Arrow connector in task-row */
+.arrow {
+  display: flex; align-items: center; color: var(--connector);
+  font-size: 18px; line-height: 1; flex-shrink: 0; margin-top: 10px;
+  user-select: none;
+}
+.arrow.blocker { color: var(--connector-blocker); }
+
+/* ── TASK CARD ── */
+.task {
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  padding: 10px 12px;
+  max-width: 240px;
+  min-width: 140px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.18s, transform 0.18s;
+  cursor: default;
+  position: relative;
+}
+.task:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.task-id { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; opacity: 0.6; margin-bottom: 3px; }
+.task-name { font-size: 12px; font-weight: 500; line-height: 1.4; }
+.task-note { font-size: 11px; margin-top: 5px; opacity: 0.8; font-style: italic; line-height: 1.3; }
+.task-owner { font-size: 10px; margin-top: 5px; font-weight: 600; opacity: 0.7; }
+
+/* Role variants */
+.task.client { background: var(--client-bg); border-color: var(--client-border); color: var(--client-text); }
+.task.us     { background: var(--us-bg);     border-color: var(--us-border);     color: var(--us-text); }
+.task.joint  { background: var(--joint-bg);  border-color: var(--joint-border);  color: var(--joint-text); }
+.task.risk   { background: var(--risk-bg);   border-color: var(--risk-border);   color: var(--risk-text); }
+.task.done   { background: var(--done-bg);   border-color: var(--done-border);   color: var(--done-text); }
+.task.tbd    { background: var(--tbd-bg);    border-color: var(--tbd-border);    color: var(--tbd-text); border-style: dashed; }
+.task.warn   { background: var(--warn-bg);   border-color: var(--warn-border);   color: var(--warn-text); }
+.task.milestone-card {
+  background: var(--milestone-bg); border-color: var(--milestone-bg); color: var(--milestone-text);
+  font-weight: 700; font-family: var(--font-display);
+}
+
+/* BLOCKER badge */
+.blocker-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--client-dot); color: white;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 4px; margin-top: 6px;
+}
+/* RISK badge */
+.risk-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--risk-dot); color: white;
+  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 6px;
+}
+/* SCOPE badge */
+.scope-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #888; color: white;
+  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 6px;
+}
+/* SOLVED badge */
+.solved-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--done-dot); color: white;
+  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 6px;
+}
+
+/* Parallel label */
+.parallel-note {
+  font-size: 11px; color: var(--text-muted); padding: 4px 10px;
+  border-left: 2px solid var(--joint-border); margin-bottom: 4px;
+  font-style: italic;
+}
+
+/* ── SEPARATOR ── */
+.phase-sep {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px;
+  background: var(--bg);
+  border-top: 1px dashed var(--border);
+  color: var(--text-faint); font-size: 11px;
+}
+.phase-sep::before, .phase-sep::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* Always-on section */
+.always-on {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  margin-top: 20px;
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+}
+.always-title { font-family: var(--font-display); font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; width: 100%; }
+.always-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); }
+.always-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--joint-dot); flex-shrink: 0; }
+
+/* Responsive */
+@media (max-width: 700px) {
+  .phase { grid-template-columns: 1fr; }
+  .phase-label { border-right: none; border-bottom: 1px solid var(--border); position: static; }
+  .task { max-width: 100%; min-width: 0; flex: 1 1 180px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">VS</div>
+    <div>
+      <div class="logo-text">VienShop · План автоматизации</div>
+      <div class="logo-sub">1С:Управление торговлей 11.5 — дорожная карта</div>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="badge-blocker">
+      <div class="pulse"></div>
+      <a href="https://mermaid.ai/live/edit#pako:eNq1WW1v20YS_it7DAzYqOwTSYl2VNyXJGjvQ4071ECKFvpCi5TMxCINmr7mBQbsOE5a9CVN68Md7i7xJT3gPhWQZbtW_CID_QXLv5Bf0pnZJZeUKDlOWtmSKC53nplnnpldSve1RuC4Wk2bmLhf9xnzfC-qMTpkrK5FS27brWs1OHTcpr22HNW1Um7wph169uKyu4pXyXk42Ai96Nrt1vVgOQiFgSvNZsWpOKmB9KogdNwwe-GiWYZH7kK7EXl_cwcMVhzbajbrmrhsPXWsZftRNOBPM_CjBe8eBaObGcurLpgO_A-y49XMeBSs_NV2HM9v4VC1nBlatMM_u15ribAMIz_yob2Cp63MWX-tveiGCwJwIborWasM-k_EXl9YEGHOSA_L7D5resvLNXalWcY_9gevvRKEEUT7PgtW7IYX3QXnc6fXWTJdV9NdC_8uN914N3Tz3dCnIy9adpUN0zTzVwoRrNf99YmJul_3hQSITzGV7_IT3uFnDF668QPe56e8A-89fgTvj-C9x256rr-wFKywX46Yzl_U-I_8JdP1maow5NiR-0EQtu2IsU_hMT0_P33jhhiz73iryRh_xg_5ATxP4ids4hPpReDYd-ft8LYbsgBE64vTExPsT0MPxv_N_85_gOczvsO_K7ginYwFxGDCHkTX58e8F2_EW_G38ZcQ1BM2yY_jDTja5Gf4eSqdJsoJJ3bgEmShKy5BvyTnSFk_3kSu4icwehZ_xQ8Z0gXBdeLHQNgkTmLA52b8lJ8yfg5ofQgcTR5KNIjiZzh1lnLytbQEXvXBWhde4QQb9agJX0vMnbNLzCgb1nRZny5XS2zO-FxC7AJuD10ABjos_gbgO_wcDHcZvjFwFpyaBo56GFC8NRZmcRTM0_gbAECi99nrjR9Y_BCIO4Y4SEDAtyJH4m5BvFvx4_gLYqAXf8uANUwJBd5D5vEckn_IVhvBilvMgTvXKHBKuJVNF4DvQ7pQ3l3kQjr-AiCR_k6JwWtfcADZ-go-IyePyL0jKgL6h4w8FMqBK0FRmFEIBM5AzruQPiT3hJJ6xvtT6KIT-MDeajnvp-KOYgaxQE3peklgbFKiTrBQBIMlRmKk1JGCSZXkBJx6hSGVkNUDmnYoVfkqF9UlPdQTD1_yQ6F2mv6K0QecfcBEIyjPmG9heyBJPwltQqeDJgOYfYhsn8LFboHq2CSNgY6S5KHe8AwVDNLyIP6aDWYGNI3OQAmgU2RBDmRLq4b9AjSuQynZzQh6Ebmc1hFQQEpB-YrDMyQW7ZLi4cNjUUNUaaiV82HVjfYECzLlUnmzmPXGTLz5L0qGimWPrAtEIRsKnRCQz0F3O4PlozcSBArdGJXzvB32HmajS6eOB40OEOoogEZGVMXJw9rnB8CHqDxKu6jBPvztyQZB12PbgN4wgOYqNCcTzrPBYhlrFvRW2Gv0prLuXhzLMTXwB2R9X2aEOm-PylKqu59XYhpJS2E1C5Qo8vDmGHR2IJwlBdG6MBzgbxsATlGsR7Q6bpHEj4XYCQG7z89FIvCKkYbTIgxhcmBgU4TyZmgQzy2F4g1TRmvdGSamV9A9hcIf09YHWme8jYsY8nZaFM9thXQrU5j55TZpaXCos7GPWtuDLW9ErVJAsLauIABNd0Y2TEM2zBd8B-qS_wQ7o-d48JTEDDufjHO41mFCN2iJlZuOEetJxuYuWOT_ooWlm-gP1EesG2nHRJeNzy_bnFVbx-tKAwpISyOh3khbIiGneP8k6R_yfVqd5a5j2OVJEdRUYX0bqhkizFAz7IkySntPIsUe1oWg7ELENA7VFxE2xdrJ7kIY6n0H7At2hPj3ZF47OWkOadRQrdAY3wqlZLK2se1v0q55m8mFvUeJPGZsEoLCvZuwI4KHuzEIXbQi2g3VtakssapxolvGhfVy2XJpGzmAMdViUrUkLWEb2wgTm_XknoZNfhhMf4R3AbTDT3chvJds3J_DkrEl2onQAW17oJSOEqljacHz1agAXFNVjZEh5H-4jOMWTt4MDC288sajQ6v-YEvPC8BUlYJoumqHHVouTshF1QFwDw85PsedOQEkZTQOQ1UMwplj1tsN2hoCJ7LEO3KV6onChV7wEEdl08-TpWrFbOQieassjpZRK1imW50EzBkrJVLSU1DCNhjHnFEYRBn0zP8Qzcdw6gFyKmKDkoah__N_jOqSUlGY6b1hyySp1xs76WKMEcMGRm4pO0P5sVKZJaGN6wNZS4rI1492cDHZZeZMOZ8XSynMst-uX74RZBqNUpu1OG6tSfCA6OJ2hRUrb7K68Zd4s4r4sMxNFancUvqzGuMpfFdE11Lys5y34xR9GNF3koBUP7bcNyDyk2sl9pd7gV9iH9ntwLEHrKmtKho2xy7Jp0VlMaKTER9qk4o45m--dLC2pRCWLi74XUpAT35Bc0BJgaN0aRArZZqegv3seaGFTnGqKmqhAD_nspnqYuXQbNnAN4ruC1-OUEPNrajyRZTq-NtL-WUM-LuRWfguCgVQVNEioPU7JLBSVRCNCzN4_eP5JFnyJhAduOZFoXfHqLA_MrH-yp57Jr8MhU0QDn2P3-jh3brOX8yMLpiiTM7aOS9Tur8fohU8ZBfR4M6q7KHly_BaxOGssraYpVAraa3Qc7RaFK65Ja3thm0bP2r0E0LxDyF1fx2mrdj-Z0HQTmaGwVprSas17eVV-LS2gl8a3_DsVmirS1yffvBY8yOtVr1KJrTafe2OVrPMmVmrOjdrVGcty9INGLyr1aarxkxVt3R9dm6uapSvVqvrJe0egeozs4Ze0a_OlQ2rqpeNaklzHS8Kwnnxsw79urP-K4p9Df0">Проф-версия (Gantt diagram)</a>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="badge-blocker">
+      <div class="pulse"></div>
+      Активный блокер: п. 1.1
+    </div>
+    <button class="theme-btn" data-theme-toggle aria-label="Сменить тему">🌙</button>
+  </div>
+</header>
+
+<div class="wrapper">
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="dot" style="background:var(--client-dot)"></div> Требует ответа от клиента (блокер)</div>
+    <div class="legend-item"><div class="dot" style="background:var(--us-dot)"></div> Наша работа</div>
+    <div class="legend-item"><div class="dot" style="background:var(--joint-dot)"></div> Совместно / встреча / приёмка</div>
+    <div class="legend-item"><div class="dot" style="background:var(--risk-dot)"></div> Риск или вне нашего scope</div>
+    <div class="legend-item"><div class="dot" style="background:var(--done-dot)"></div> Выполнено</div>
+    <div class="legend-item"><div class="dot" style="background:var(--tbd-border)"></div> Раскрывается позже</div>
+    <div class="legend-item" style="margin-left:auto; font-size:12px; color:var(--text-faint);">
+      → стрелка = зависимость (следует после)
+    </div>
+  </div>
+
+  <div class="timeline">
+
+    <!-- ═══ СТАРТ ═══ -->
+    <div class="phase">
+      <div class="phase-label phase-done">
+        <div class="phase-num">Старт</div>
+        <div class="phase-title">Подготовка</div>
+        <div class="phase-dur">✅ Завершено</div>
+      </div>
+      <div class="phase-body">
+        <div class="task-row">
+          <div class="task done">
+            <div class="task-name">Среда, доступы, лицензии, тестовая база</div>
+            <div class="solved-badge">✓ Готово</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ЭТАП 1 ═══ -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">Этап 1</div>
+        <div class="phase-title">Торговля и склад</div>
+        <div class="phase-dur">~1–2 месяца</div>
+      </div>
+      <div class="phase-body">
+
+        <div class="stream">
+          <div class="stream-label">Номенклатура</div>
+          <div class="task-row">
+            <div class="task client">
+              <div class="task-id">1.1</div>
+              <div class="task-name">Согласовать структуру номенклатуры</div>
+              <div class="task-note">Иерархия, характеристики, штрихкоды, ЧЗ-коды</div>
+              <div class="solved-badge">✓ Ключ учёта согласован</div>
+              <div class="blocker-badge"><div class="pulse"></div> Остальное — блокер</div>
+              <div class="task-owner">Ирина + бухгалтеры</div>
+            </div>
+	   <div class="arrow blocker">→</div>
+            <div class="task client">
+              <div class="task-id">1.2</div>
+              <div class="task-name">Список печатных форм </div>
+              <div class="task-note">с разбивкой по ш-к, указание конкретных полей сопоставления БП и УТ11 (или отложить?)</div>
+              <div class="task-owner">Татьяна, бухгалтеры</div>
+            </div>	
+            <div class="arrow blocker">→</div>
+            <div class="task us">
+              <div class="task-id">1.3</div>
+              <div class="task-name">Разработать инструмент переноса номенклатуры</div>
+              <div class="task-note">Многократный, не разовый</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+            <div class="arrow">+</div>
+            <div class="task client">
+              <div class="task-id">1.4</div>
+              <div class="task-name">Очистить номенклатуру в УТ 10.3</div>
+              <div class="task-note">Задвоения, отрицательные остатки — параллельно</div>
+              <div class="blocker-badge"><div class="pulse"></div> Блокер</div>
+              <div class="task-owner">Татьяна</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="task us">
+              <div class="task-id">1.5</div>
+              <div class="task-name">Тестовый перенос → проверка</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stream">
+          <div class="stream-label">Ценообразование</div>
+          <div class="task-row">
+            <div class="task client">
+              <div class="task-id">1.6</div>
+              <div class="task-name">Согласовать виды цен</div>
+              <div class="task-note">Розница, опт, МП, скидки, валюты</div>
+              <div class="blocker-badge"><div class="pulse"></div> Блокер</div>
+              <div class="task-owner">Клиент</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task us">
+              <div class="task-id">1.7</div>
+              <div class="task-name">Настройка ценообразования</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stream">
+          <div class="stream-label">Контрагенты</div>
+          <div class="task-row">
+            <div class="task client">
+              <div class="task-id">1.8</div>
+              <div class="task-name">Согласовать классификацию контрагентов</div>
+              <div class="task-note">Покупатели, поставщики, МП, роли, юрлица</div>
+              <div class="blocker-badge"><div class="pulse"></div> Блокер</div>
+              <div class="task-owner">Клиент</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task us">
+              <div class="task-id">1.9</div>
+              <div class="task-name">Перенос контрагентов и договоров</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stream">
+          <div class="stream-label">Закупки и продажи</div>
+          <div class="task-row">
+            <div class="task joint">
+              <div class="task-id">1.10</div>
+              <div class="task-name">Согласовать схему закупок</div>
+              <div class="task-owner">Совместно</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="task us">
+              <div class="task-id">1.11</div>
+              <div class="task-name">Настройка блока закупок</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+            <div class="arrow" style="margin-left:12px">|</div>
+            <div class="task joint">
+              <div class="task-id">1.12</div>
+              <div class="task-name">Согласовать схему продаж и комиссии</div>
+              <div class="task-owner">Совместно</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="task us">
+              <div class="task-id">1.13</div>
+              <div class="task-name">Настройка продаж и комиссионной торговли</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stream">
+          <div class="stream-label">Печатные формы и документы</div>
+          <div class="task-row">
+            <div class="task client">
+              <div class="task-id">1.15</div>
+              <div class="task-name">Предоставить перечень документов</div>
+              <div class="task-note">Где нужен конкретный штрихкод (не только ключ учёта)</div>
+              <div class="blocker-badge"><div class="pulse"></div> Блокер</div>
+              <div class="task-owner">Татьяна Воржева + Андрей</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task us">
+              <div class="task-id">1.16</div>
+              <div class="task-name">Настройка и доработка печатных форм</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-row" style="margin-top:4px">
+          <div class="task joint milestone-card" style="max-width:none; flex:1">
+            <div class="task-id">1.14</div>
+            <div class="task-name">✅ Приёмка Этапа 1 по чек-листу</div>
+            <div class="task-note" style="opacity:0.7">Ключевые пользователи клиента подтверждают готовность каждого блока</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ ЭТАП 2 ═══ -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">Этап 2</div>
+        <div class="phase-title">ТСД + Склад + ЭДО + Банки</div>
+        <div class="phase-dur">~1–2 мес. · параллельно с Эт. 1</div>
+      </div>
+      <div class="phase-body">
+        <div class="parallel-note">⇄ Может стартовать параллельно с Этапом 1</div>
+
+        <div class="stream">
+          <div class="stream-label">ТСД / Клеверенс</div>
+          <div class="task-row">
+            <div class="task us">
+              <div class="task-id">2.1</div>
+              <div class="task-name">Предварительная настройка ТСД + ПО Клеверенс</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task client">
+              <div class="task-id">2.2</div>
+              <div class="task-name">Согласовать структуру складов</div>
+              <div class="blocker-badge"><div class="pulse"></div> Блокер</div>
+              <div class="task-owner">Клиент</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task us">
+              <div class="task-id">2.3</div>
+              <div class="task-name">Интеграция Клеверенс</div>
+              <div class="task-note">Сборка, инвентаризация</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stream">
+          <div class="stream-label">ЭДО</div>
+          <div class="task-row">
+            <div class="task client">
+              <div class="task-id">2.4</div>
+              <div class="task-name">Предоставить доступ к Контур.Диадок</div>
+              <div class="blocker-badge"><div class="pulse"></div> Блокер</div>
+              <div class="task-owner">Клиент</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task us">
+              <div class="task-id">2.5</div>
+              <div class="task-name">Настройка ЭДО (Контур.Диадок)</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+            <div class="arrow" style="margin-left:10px">|</div>
+            <div class="task risk">
+              <div class="task-id">2.6</div>
+              <div class="task-name">Честный знак (ЧЗ)</div>
+              <div class="scope-badge">Вне нашего scope</div>
+              <div class="task-note">Контур / Клеверенс — внешний поставщик. Подключение на стороне клиента.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stream">
+          <div class="stream-label">Банки</div>
+          <div class="task-row">
+            <div class="task client">
+              <div class="task-id">2.7</div>
+              <div class="task-name">Предоставить доступ к клиент-банку</div>
+              <div class="blocker-badge"><div class="pulse"></div> Блокер</div>
+              <div class="task-owner">Клиент</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task us">
+              <div class="task-id">2.8</div>
+              <div class="task-name">Настройка загрузки банковских выписок</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-row" style="margin-top:4px">
+          <div class="task joint milestone-card" style="max-width:none; flex:1">
+            <div class="task-id">2.9</div>
+            <div class="task-name">✅ Приёмка Этапа 2 по чек-листу</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ЭТАП 3 ═══ -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">Этап 3</div>
+        <div class="phase-title">Переход офиса на УТ 11.5</div>
+        <div class="phase-dur">~1 месяц</div>
+      </div>
+      <div class="phase-body">
+        <div class="task-row">
+          <div class="task joint">
+            <div class="task-id">3.1</div>
+            <div class="task-name">Обучение ключевых пользователей</div>
+            <div class="task-owner">Совместно</div>
+          </div>
+          <div class="arrow">+</div>
+          <div class="task us">
+            <div class="task-id">3.2</div>
+            <div class="task-name">Финальный перенос остатков</div>
+            <div class="task-owner">Наша команда</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="task joint">
+            <div class="task-id">3.3</div>
+            <div class="task-name">Параллельная эксплуатация УТ 10.3 + 11.5</div>
+            <div class="task-note">Не более 2–4 недель</div>
+            <div class="task-owner">Совместно</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="task us">
+            <div class="task-id">3.4</div>
+            <div class="task-name">Настройка ролей и прав перед запуском</div>
+            <div class="task-owner">Наша команда</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="task milestone-card">
+            <div class="task-name">🎯 GO-LIVE ТОРГОВЛИ</div>
+            <div class="task-note" style="opacity:0.8">Отключение УТ 10.3 офис</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ЭТАП 4 ═══ -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">Этап 4</div>
+        <div class="phase-title">Производство: ТЗ</div>
+        <div class="phase-dur">~2–3 месяца</div>
+      </div>
+      <div class="phase-body">
+        <div class="task-row">
+          <div class="task client">
+            <div class="task-id">4.1</div>
+            <div class="task-name">Описать процессы производства «как есть»</div>
+            <div class="blocker-badge"><div class="pulse"></div> Блокер</div>
+            <div class="task-owner">Клиент</div>
+          </div>
+          <div class="arrow blocker">→</div>
+          <div class="task joint">
+            <div class="task-id">4.2</div>
+            <div class="task-name">Совместная разработка ТЗ на производство</div>
+            <div class="task-note">Отдельный подпроект, детали уточняются в процессе</div>
+            <div class="task-owner">Совместно</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="task tbd">
+            <div class="task-id">4.3+</div>
+            <div class="task-name">Дальнейшие задачи раскрываются по ТЗ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ЭТАП 5 ═══ -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">Этап 5</div>
+        <div class="phase-title">Производство: внедрение</div>
+        <div class="phase-dur">~1–2 месяца</div>
+      </div>
+      <div class="phase-body">
+        <div class="task-row">
+          <div class="task tbd" style="flex:1; max-width:none">
+            <div class="task-name">Задачи раскрываются после завершения Этапа 4</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ЭТАП 6 ═══ -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">Этап 6</div>
+        <div class="phase-title">Бухгалтерии + Маркетплейсы</div>
+        <div class="phase-dur">~1–2 месяца</div>
+      </div>
+      <div class="phase-body">
+        <div class="parallel-note">⇄ Стартует параллельно с Этапом 3 (после Go-Live торговли)</div>
+
+        <div class="stream">
+          <div class="stream-label">Обмен с бухгалтерией</div>
+          <div class="task-row">
+            <div class="task client">
+              <div class="task-id">6.1</div>
+              <div class="task-name">Согласовать схему обмена с БП 3.0</div>
+              <div class="task-note">С характеристиками или без — требует созвона с бухгалтерами каждого юрлица</div>
+              <div class="blocker-badge"><div class="pulse"></div> Ожидаем от клиента</div>
+              <div class="task-owner">Ирина + бухгалтеры</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task risk">
+              <div class="task-name">⚠️ Риск задержки этапа</div>
+              <div class="task-note">Предварительное решение — не финальное. Без ответа бухгалтеров этап не стартует.</div>
+              <div class="risk-badge">Риск</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task us">
+              <div class="task-id">6.2</div>
+              <div class="task-name">Настройка обмена УТ ↔ БП 3.0</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stream">
+          <div class="stream-label">Маркетплейсы</div>
+          <div class="task-row">
+            <div class="task client">
+              <div class="task-id">6.3</div>
+              <div class="task-name">Предоставить API-ключи WB, Ozon</div>
+              <div class="blocker-badge"><div class="pulse"></div> Блокер</div>
+              <div class="task-owner">Клиент</div>
+            </div>
+            <div class="arrow blocker">→</div>
+            <div class="task us">
+              <div class="task-id">6.4</div>
+              <div class="task-name">Интеграция WB, Ozon (типовой модуль УТ)</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+            <div class="arrow">+</div>
+            <div class="task us">
+              <div class="task-id">6.5</div>
+              <div class="task-name">Интеграция Lamoda (агрегатор)</div>
+              <div class="task-owner">Наша команда</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-row" style="margin-top:4px">
+          <div class="task joint milestone-card" style="max-width:none; flex:1">
+            <div class="task-id">6.7</div>
+            <div class="task-name">✅ Приёмка Этапа 6 по чек-листу</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ЭТАП 7 ═══ -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">Этап 7</div>
+        <div class="phase-title">CRM</div>
+        <div class="phase-dur">~2–3 месяца</div>
+      </div>
+      <div class="phase-body">
+        <div class="task-row">
+          <div class="task joint">
+            <div class="task-id">7.1</div>
+            <div class="task-name">Оценить Bitrix24 vs альтернативу</div>
+            <div class="task-note">Совместное решение — клиент не вполне доволен Bitrix24</div>
+            <div class="task-owner">Совместно</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="task tbd">
+            <div class="task-id">7.2</div>
+            <div class="task-name">Детали раскрываются после решения по 7.1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+
+  <!-- ALWAYS-ON -->
+  <div class="always-on">
+    <div class="always-title">♾ Постоянно — на всех этапах</div>
+    <div class="always-item"><div class="always-dot"></div> Еженедельный созвон (30–60 мин.)</div>
+    <div class="always-item"><div class="always-dot"></div> Приёмка каждого этапа по чек-листу</div>
+    <div class="always-item"><div class="always-dot"></div> Задачи вне scope фиксируются и оцениваются отдельно</div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+(function(){
+  const btn = document.querySelector('[data-theme-toggle]');
+  const html = document.documentElement;
+  let d = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+  html.setAttribute('data-theme', d);
+  btn.textContent = d === 'dark' ? '☀️' : '🌙';
+  btn.addEventListener('click', () => {
+    d = d === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', d);
+    btn.textContent = d === 'dark' ? '☀️' : '🌙';
+  });
+})();
+</script>
+</body>
+</html>
